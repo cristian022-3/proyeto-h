@@ -10,7 +10,7 @@ let activeResetUserEmail = null;
 // Detectar si el usuario llega mediante el enlace de recuperación de contraseña
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
   // Se activa con el evento nativo o inspeccionando la URL directamente
-  if (event === 'PASSWORD_RECOVERY' || window.location.hash.includes('type=recovery')) {
+  if (event === 'PASSWORD_RECOVERY' || window.location.href.includes('type=recovery')) {
     
     // 1. Mostrar la sección de autenticación y ocultar el resto de la app
     document.getElementById('authSection')?.classList.remove('hidden');
@@ -48,7 +48,7 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
 
 // INIT SESSION
 async function initSession() {
-  if (window.location.hash.includes('type=recovery')) {
+  if (window.location.href.includes('type=recovery')) {
     // Si estamos en recuperación, detenemos el flujo principal
     // para no sobreescribir la interfaz gráfica.
     return;
@@ -251,8 +251,9 @@ async function handleSendCode(e) {
     targetEmail = data.email;
   }
 
+  const redirectUrl = window.location.origin + window.location.pathname;
   const { error } = await supabaseClient.auth.resetPasswordForEmail(targetEmail, {
-    redirectTo: window.location.origin + window.location.pathname
+    redirectTo: redirectUrl
   });
 
   if (error) {
@@ -292,6 +293,10 @@ async function handleResetPassword(e) {
       codeInput.parentElement.classList.remove('hidden');
       codeInput.required = true;
     }
+
+    // Limpiar los inputs
+    document.getElementById('inputNewPassword').value = '';
+    if (codeInput) codeInput.value = '';
 
     // Cerrar la sesión temporal y volver a la vista de login
     await logout();
